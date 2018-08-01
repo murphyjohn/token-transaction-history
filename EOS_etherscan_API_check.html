@@ -45,12 +45,15 @@
 
 
                     for(var i = 0; i<jsonFile.result.length; i++){
-
+                        
+                        // Create a new JavaScript Date object based on the timestamp
+                        // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+                        var date = new Date(jsonFile.result[i].timeStamp * 1000);
                         txData.innerHTML = txData.innerHTML + (
                             
                             "Transaction ID: "+jsonFile.result[i].hash + "<br>"+
                             
-                            "Time: "+ jsonFile.result[i].timeStamp + "<br>"+
+                            "Time: "+ date + "<br>"+
                             
                             "Token Symbol: " + jsonFile.result[i].tokenSymbol + "<br>"+
                             
