@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Web3JS is needed to handle the conversion from wei to ETH, as JS can only handle 64 Bit numbers -->
+    <script src="https://cdn.rawgit.com/ethereum/web3.js/1.0/dist/web3.min.js"></script>
+    <title>Etherscan API Test</title>
+</head>
+<body>
+
+    <button class="tx-load">Get Transaction Data</button>
+    <button class="tx-delete">Delete Transaction Data</button>
+
+
+    <!-- I opted to use a table instead of a list of paragraphs. If you need a list of paragraphs instead,
+        feel free to try it yourself or ask if you're stuck somewhere! -->
+    <table class="tx-table">
+      <tr class="tx-table-header">
+        <th>Transaction ID</th>
+        <th>Time</th>
+        <th>Token Symbol</th>
+        <th>To</th>
+        <th>From</th>
+        <th>Amount Transferred</th>
+      </tr>
+    </table>
+
+    <p id="output"></p>
+    
+    
+    <script>
+        let web3;
+        if (typeof web3 !== 'undefined') {
+            //if metamask is running this keeps using metamask as the web3 provider
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            // set the provider you want from Web3.providers
+            web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/v3/'));
+        }
+        
+        function loadTransactions() {
+            // I exchanged all 'var's to 'let' or 'const', since it's recommended to do so.
+           //  It has to do with how variables are scoped when they are declared with 'var' vs with 'let'.
+            // In general it's best to use 'let' if you change the value later on and use 'const' if you don't change the initial value.
+            const url = "https://api.etherscan.io/api?module=account&action=tokentx&contractaddress=0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0&address=0x46f91f0025c303d66958fd84feec3605e9363067&page=1&offset=100&sort=asc&apikey=YourApiKeyToken";
+           
+            const xhttp = new XMLHttpRequest();
+
+            let jsonFile;
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                   
+                    jsonFile = JSON.parse(this.responseText);
+
+                    // Get element reference to the table.
+                    let txTable = document.querySelector('.tx-table');
+
+                    // Iterate over the jsonFile.result array, each time printing out a new table row.
+                    for (let result of jsonFile.result) {
+                        // The syntax with `Regular string ${javascriptExpression}` is called template literals.
+                        // It's essentially a multiline string that has JavaScript expressions (for example variables or function results) within it.
+                        // Everything inside ${...} is evaluated as JavaScript and its result is printed into the string.
+                    	txTable.insertAdjacentHTML('beforeend', `
+                            <tr class="tx-table-data">
+                                <td>${result.hash}</td>
+                                <td>${result.timeStamp}</td>
+                                <td>${result.tokenSymbol}</td>
+                                <td>${result.to}</td>
+                                <td>${result.from}</td>
+                                <td>${web3.utils.fromWei(result.value, 'ether')}</td>
+                            </tr>`);
+                    }
+
+                }
+            };
+            xhttp.open("GET", url, true);
+            xhttp.send();
+
+        }
+
+        function deleteTransactions() {
+            // Iterate over all elements with the 'tx-table-data' class and delete them.
+            // Since all the inserted data rows have this class, they will be removed.
+            for (let tableRow of document.querySelectorAll('.tx-table-data')) {
+                // Since elements don't have a function to remove them, we have to work around that by calling the parent element's 'removeChild' function
+                tableRow.parentElement.removeChild(tableRow);
+            }
+        }
+
+        // This binds the JS functions to the buttons.
+        // It's a newer and nicer way than adding an 'onclick' attribute to the HTML element directly.
+        document.querySelector('.tx-load').addEventListener('click', loadTransactions);
+        document.querySelector('.tx-delete').addEventListener('click', deleteTransactions);
+    </script>
+</body>
+</html>
